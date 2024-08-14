@@ -6,7 +6,6 @@ from langchain_openai import ChatOpenAI
 from langchain_core.prompts import PromptTemplate
 from langchain_community.vectorstores import FAISS
 from dotenv import load_dotenv
-import whisper
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 
 app = Flask(__name__)
@@ -18,19 +17,6 @@ load_dotenv()
 # Retrieve the OpenAI API key from environment variables
 openai_api_key = os.getenv('OPENAI_API_KEY')
 
-# Initialize Whisper model
-whisper_model = whisper.load_model("small")
-
-# Define the prompt template for the QA chain
-# prompt_template = """
-# You are a car manual expert and highly knowledgeable about vehicle maintenance and operation.
-# Based on the following excerpt from a car manual, diagrams, and tables:
-# {context}
-# Question: {question}
-# If the information is not available or the question is outside the context, respond with "Sorry, I don't have much information about it."
-# Provide a detailed and informative answer based on the context provided.
-# Answer:
-# """
 prompt_template = """
 You are a car manual expert and highly knowledgeable about vehicle maintenance and operation.
 Based on the following excerpt from a car manual, diagrams, and tables:
@@ -121,23 +107,6 @@ def ask():
     
     print(f"Response: {response}")  # Log the response
     return jsonify(response)
-
-@app.route('/transcribe', methods=['POST'])
-def transcribe():
-    file = request.files.get('audio')
-    if not file:
-        return jsonify({'error': 'No audio file provided'}), 400
-    
-    # Transcribe the audio file using Whisper
-    audio_path = 'temp_audio.wav'
-    file.save(audio_path)
-    
-    # Load the audio file and transcribe
-    result = whisper_model.transcribe(audio_path)
-    os.remove(audio_path)
-    
-    print(f"Transcription: {result['text']}")  # Log the transcription result
-    return jsonify({'transcription': result['text']})
 
 if __name__ == '__main__':
     app.run(debug=True)
